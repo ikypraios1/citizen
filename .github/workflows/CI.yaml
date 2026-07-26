@@ -22,14 +22,21 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
           cache: maven
 
 
-      # 4. Καθαρό maven build του project
-      - name: Build project
-        run: mvn clean compile
+      - name: Compile, Unit Test and Install
+        id: unit-tests
+        run: mvn clean install
+
+      - name: Upload test reports
+        if: always() && steps.unit-tests.outcome == 'success'
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: '**/target/surefire-reports/*.xml'
 
 
       # 5. Ξεκινάμε τα Unit Tests
