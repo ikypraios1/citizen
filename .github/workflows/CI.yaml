@@ -1,0 +1,54 @@
+name: Spring Boot Maven CI Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+
+  build-and-test:
+
+    runs-on: self-hosted
+
+    steps:
+
+      # Βήμα πρώτο CheckOut 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+      # 2. Setup Java στο On premise Machine 
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+
+      # 4. Καθαρό maven build του project
+      - name: Build project
+        run: mvn clean compile
+
+
+      # 5. Ξεκινάμε τα Unit Tests
+      # # *Test.java, Test*.java, *Tests.java
+      - name: Run Unit Tests
+        run: mvn test
+
+
+      # 6. Integration / API Testing
+      - name: Run Integration Tests
+        run: mvn verify
+
+
+
+      # 8. Αντιγραφή των απραγόμενων αρχείων από τα tests που είναι στον φάκελο target
+      - name: Upload Integration Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-reports
+          path: |
+            **/target/failsafe-reports/
